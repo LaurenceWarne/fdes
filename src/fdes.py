@@ -35,6 +35,13 @@ def remove_desc(filename):
   except Error as e:
     print(e)
 
+def copy_desc(filename, newfile):
+  global c
+  try:
+    c.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
+  except Error as e:
+    print(e)
+
 def cleanup_db():
   global c
   try:
@@ -60,7 +67,8 @@ def list_all():
   except Error as e:
     print(e)
 
-FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'cleanup' : cleanup_db, 'listall': list_all}
+FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'cleanup' : cleanup_db, \
+               'listall' : list_all, 'copy' : copy_desc}
 
 def main():
   global conn
@@ -68,6 +76,7 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('command', choices=FUNCTION_MAP.keys())
   parser.add_argument('-f', '--file', type=str,  help="File name")
+  parser.add_argument('-d', '--destination', type=str, help="File name path to copy a description to.")
   args = parser.parse_args()
 
   config = configparser.ConfigParser()
@@ -81,6 +90,10 @@ def main():
       func = FUNCTION_MAP[args.command]
       if args.command == 'cleanup' or args.command == 'listall':
         func()
+      elif args.command == 'copy':
+        filename = os.path.abspath(args.file)
+        newfile = os.path.abspath(args.destination)
+        func(filename, newfile)
       else:
         filename = os.path.abspath(args.file)
         func(filename)

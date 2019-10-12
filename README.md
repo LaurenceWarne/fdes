@@ -32,6 +32,9 @@ $ fdes set -f <filename>
 # Get the description of a file
 $ fdes get -f <filename>
 
+# Copy the description of one file to another.
+$ fdes copy -f <filename> -d <new filename destination>
+
 # List all file descriptions set by your user
 $ fdes listall
 +-------------+-------------------------------------+
