@@ -13,7 +13,7 @@ Requires Python3
 
 Dependencies
 ```bash
-pip install prettytables
+pip install prettytable
 
 ```
 Setup
