@@ -13,8 +13,7 @@ Requires Python3
 
 Dependencies
 ```bash
-pip install prettytable
-pip install configparser
+pip3 install -r requirements.txt
 
 ```
 Setup
