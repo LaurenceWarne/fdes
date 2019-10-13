@@ -7,11 +7,8 @@ import configparser
 from sqlite3 import Error
 from prettytable import PrettyTable
 
-connection = None
-cursor = None
 
-def get_desc(filename):
-  global cursor
+def get_desc(cursor, filename):
   try:
     cursor.execute('''SELECT description FROM fdescriptions WHERE filename=?''', (filename,))
     rows = cursor.fetchall()
@@ -20,30 +17,26 @@ def get_desc(filename):
   except Error as e:
     print(e)
 
-def set_desc(filename):
-  global cursor
+def set_desc(cursor, filename):
   desc = input("Enter file description: ")
   try:
     cursor.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
   except Error as e:
     print(e)
 
-def remove_desc(filename):
-  global cursor
+def remove_desc(cursor, filename):
   try:
     cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
   except Error as e:
     print(e)
 
-def copy_desc(filename, newfile):
-  global cursor
+def copy_desc(cursor, filename, newfile):
   try:
     cursor.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
   except Error as e:
     print(e)
 
-def cleanup_db():
-  global cursor
+def cleanup_db(cursor):
   try:
     cursor.execute('''SELECT * FROM  fdescriptions''')
     rows = cursor.fetchall()
@@ -54,8 +47,7 @@ def cleanup_db():
   except Error as e:
     print(e)
 
-def list_all():
-  global cursor
+def list_all(cursor):
   table =  PrettyTable()
   table.field_names = ["File Name", "Description"]
   try:
@@ -71,8 +63,6 @@ FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'clea
                'listall' : list_all, 'copy' : copy_desc}
 
 def main():
-  global connection
-  global cursor
   parser = argparse.ArgumentParser()
   parser.add_argument('command', choices=FUNCTION_MAP.keys())
   parser.add_argument('-f', '--file', type=str,  help="File name")
@@ -89,14 +79,14 @@ def main():
       cursor.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
       func = FUNCTION_MAP[args.command]
       if args.command == 'cleanup' or args.command == 'listall':
-        func()
+        func(cursor)
       elif args.command == 'copy':
         filename = os.path.abspath(args.file)
         newfile = os.path.abspath(args.destination)
-        func(filename, newfile)
+        func(cursor, filename, newfile)
       else:
         filename = os.path.abspath(args.file)
-        func(filename)
+        func(cursor, filename)
       connection.commit()
   except Error as e:
         print(e)
