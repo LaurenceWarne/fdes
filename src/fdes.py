@@ -7,72 +7,47 @@ import configparser
 from sqlite3 import Error
 from prettytable import PrettyTable
 
-conn = None
-c = None	
 
-def get_desc(filename):
-  global c
-  try:
-    c.execute('''SELECT description FROM fdescriptions WHERE filename=?''', (filename,))
-    rows = c.fetchall()
-    for row in rows:
-      print(row[0])
-  except Error as e:
-    print(e)
+def get_desc(cursor, filename):
+    cursor.execute('''SELECT description FROM fdescriptions WHERE filename = ?''', (filename,))
+    for (description,) in cursor:
+      print(description)
 
-def set_desc(filename):
-  global c
+
+def set_desc(cursor, filename):
   desc = input("Enter file description: ")
-  try:
-    c.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
-  except Error as e:
-    print(e)
+  cursor.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
 
-def remove_desc(filename):
-  global c
-  try:
-    c.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
-  except Error as e:
-    print(e)
 
-def copy_desc(filename, newfile):
-  global c
-  try:
-    c.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
-  except Error as e:
-    print(e)
+def remove_desc(cursor, filename):
+    cursor.execute('''DELETE FROM fdescriptions WHERE filename = ?''', (filename,))
 
-def cleanup_db():
-  global c
-  try:
-    c.execute('''SELECT * FROM  fdescriptions''')
-    rows = c.fetchall()
-    for row in rows:
-      if not os.path.exists(row[0]):
-        c.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (row[0],))
-        print('Removed description for deleted file', row[0])
-  except Error as e:
-    print(e)
 
-def list_all():
-  global c
+def copy_desc(cursor, filename, newfile):
+    cursor.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
+
+
+def cleanup_db(cursor):
+    cursor.execute('''SELECT filename FROM fdescriptions''')
+    for (filename, ) in cursor:
+      if not os.path.exists(filename):
+        cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
+        print('Removed description for deleted file', filename)
+
+
+def list_all(cursor):
   table =  PrettyTable()
   table.field_names = ["File Name", "Description"]
-  try:
-    c.execute('''SELECT * FROM  fdescriptions''')
-    rows = c.fetchall()
-    for row in rows:
-      table.add_row([row[0],row[1]])
-    print(table)
-  except Error as e:
-    print(e)
+  cursor.execute('''SELECT filename, description FROM  fdescriptions''')
+  for (filename, description,) in cursor:
+      table.add_row((filename, description,))
+  print(table)
+
 
 FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'cleanup' : cleanup_db, \
                'listall' : list_all, 'copy' : copy_desc}
 
 def main():
-  global conn
-  global c
   parser = argparse.ArgumentParser()
   parser.add_argument('command', choices=FUNCTION_MAP.keys())
   parser.add_argument('-f', '--file', type=str,  help="File name")
@@ -83,25 +58,20 @@ def main():
   config.read_file(open(os.path.expanduser('~/.fdesrc')))
   dbpath = config.get('default','db')
 
-  try:
-      conn = sqlite3.connect(os.path.expanduser(dbpath))
-      c = conn.cursor()
-      c.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
+  with sqlite3.connect(os.path.expanduser(dbpath)) as connection:
+      cursor = connection.cursor()
+      cursor.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
       func = FUNCTION_MAP[args.command]
       if args.command == 'cleanup' or args.command == 'listall':
-        func()
+        func(cursor)
       elif args.command == 'copy':
         filename = os.path.abspath(args.file)
         newfile = os.path.abspath(args.destination)
-        func(filename, newfile)
+        func(cursor, filename, newfile)
       else:
         filename = os.path.abspath(args.file)
-        func(filename)
-      conn.commit()
-  except Error as e:
-        print(e)
-  finally:
-    if conn:
-      conn.close()
+        func(cursor, filename)
+      connection.commit()
+
 
 main()
