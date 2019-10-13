@@ -21,7 +21,7 @@ Setup
 ```bash
 git clone <this repo>
 cd fdes
-sudo -i -u $user ./install.sh
+./install.sh
 ```
 
 ## Usage Examples
