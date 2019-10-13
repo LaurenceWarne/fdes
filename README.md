@@ -4,8 +4,8 @@ A command line utility for adding a description to files.
 
 ## Configuration
 
-The 'db' path in .fdesrc is a file path for an sqlite3 database. If it does not exist, it will be created at this path during the first run.
-The default database path is ~/.fdes.db
+The 'db' path in /.config/fdes/fdesrc is a file path for an sqlite3 database. If it does not exist, it will be created at this path during the first run.
+The default database path is ~/.local/share/fdes/.fdes.db
 
 ## Installation
 

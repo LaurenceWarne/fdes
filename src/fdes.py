@@ -55,7 +55,7 @@ def main():
   args = parser.parse_args()
 
   config = configparser.ConfigParser()
-  config.read_file(open(os.path.expanduser('~/.fdesrc')))
+  config.read_file(open(os.path.expanduser('~/.config/fdes/fdesrc')))
   dbpath = config.get('default','db')
 
   with sqlite3.connect(os.path.expanduser(dbpath)) as connection:
