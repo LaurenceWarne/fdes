@@ -14,13 +14,14 @@ Requires Python3
 Dependencies
 ```bash
 pip install prettytable
+pip install configparser
 
 ```
 Setup
 ```bash
 git clone <this repo>
 cd fdes
-sudo ./install.sh
+sudo -i -u $user ./install.sh
 ```
 
 ## Usage Examples
