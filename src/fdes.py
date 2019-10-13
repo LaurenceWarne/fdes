@@ -9,10 +9,9 @@ from prettytable import PrettyTable
 
 
 def get_desc(cursor, filename):
-    cursor.execute('''SELECT description FROM fdescriptions WHERE filename=?''', (filename,))
-    rows = cursor.fetchall()
-    for row in rows:
-      print(row[0])
+    cursor.execute('''SELECT description FROM fdescriptions WHERE filename = ?''', (filename,))
+    for (description,) in cursor:
+      print(description)
 
 
 def set_desc(cursor, filename):
@@ -21,7 +20,7 @@ def set_desc(cursor, filename):
 
 
 def remove_desc(cursor, filename):
-    cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
+    cursor.execute('''DELETE FROM fdescriptions WHERE filename = ?''', (filename,))
 
 
 def copy_desc(cursor, filename, newfile):
@@ -29,21 +28,19 @@ def copy_desc(cursor, filename, newfile):
 
 
 def cleanup_db(cursor):
-    cursor.execute('''SELECT * FROM  fdescriptions''')
-    rows = cursor.fetchall()
-    for row in rows:
-      if not os.path.exists(row[0]):
-        cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (row[0],))
-        print('Removed description for deleted file', row[0])
+    cursor.execute('''SELECT filename FROM fdescriptions''')
+    for (filename, ) in cursor:
+      if not os.path.exists(filename):
+        cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
+        print('Removed description for deleted file', filename)
 
 
 def list_all(cursor):
   table =  PrettyTable()
   table.field_names = ["File Name", "Description"]
-  cursor.execute('''SELECT * FROM  fdescriptions''')
-  rows = cursor.fetchall()
-  for row in rows:
-      table.add_row([row[0],row[1]])
+  cursor.execute('''SELECT filename, description FROM  fdescriptions''')
+  for (filename, description,) in cursor:
+      table.add_row((filename, description,))
   print(table)
 
 
