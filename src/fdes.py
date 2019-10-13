@@ -9,55 +9,43 @@ from prettytable import PrettyTable
 
 
 def get_desc(cursor, filename):
-  try:
     cursor.execute('''SELECT description FROM fdescriptions WHERE filename=?''', (filename,))
     rows = cursor.fetchall()
     for row in rows:
       print(row[0])
-  except Error as e:
-    print(e)
+
 
 def set_desc(cursor, filename):
   desc = input("Enter file description: ")
-  try:
-    cursor.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
-  except Error as e:
-    print(e)
+  cursor.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
+
 
 def remove_desc(cursor, filename):
-  try:
     cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
-  except Error as e:
-    print(e)
+
 
 def copy_desc(cursor, filename, newfile):
-  try:
     cursor.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
-  except Error as e:
-    print(e)
+
 
 def cleanup_db(cursor):
-  try:
     cursor.execute('''SELECT * FROM  fdescriptions''')
     rows = cursor.fetchall()
     for row in rows:
       if not os.path.exists(row[0]):
         cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (row[0],))
         print('Removed description for deleted file', row[0])
-  except Error as e:
-    print(e)
+
 
 def list_all(cursor):
   table =  PrettyTable()
   table.field_names = ["File Name", "Description"]
-  try:
-    cursor.execute('''SELECT * FROM  fdescriptions''')
-    rows = cursor.fetchall()
-    for row in rows:
+  cursor.execute('''SELECT * FROM  fdescriptions''')
+  rows = cursor.fetchall()
+  for row in rows:
       table.add_row([row[0],row[1]])
-    print(table)
-  except Error as e:
-    print(e)
+  print(table)
+
 
 FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'cleanup' : cleanup_db, \
                'listall' : list_all, 'copy' : copy_desc}
