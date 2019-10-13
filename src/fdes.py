@@ -7,60 +7,60 @@ import configparser
 from sqlite3 import Error
 from prettytable import PrettyTable
 
-conn = None
-c = None	
+connection = None
+cursor = None
 
 def get_desc(filename):
-  global c
+  global cursor
   try:
-    c.execute('''SELECT description FROM fdescriptions WHERE filename=?''', (filename,))
-    rows = c.fetchall()
+    cursor.execute('''SELECT description FROM fdescriptions WHERE filename=?''', (filename,))
+    rows = cursor.fetchall()
     for row in rows:
       print(row[0])
   except Error as e:
     print(e)
 
 def set_desc(filename):
-  global c
+  global cursor
   desc = input("Enter file description: ")
   try:
-    c.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
+    cursor.execute('''INSERT INTO fdescriptions (filename, description) VALUES (?, ?)''', (filename, desc,))
   except Error as e:
     print(e)
 
 def remove_desc(filename):
-  global c
+  global cursor
   try:
-    c.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
+    cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (filename,))
   except Error as e:
     print(e)
 
 def copy_desc(filename, newfile):
-  global c
+  global cursor
   try:
-    c.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
+    cursor.execute('''INSERT INTO fdescriptions (filename, description) SELECT ?, description FROM fdescriptions WHERE filename = ?''', (newfile, filename,))
   except Error as e:
     print(e)
 
 def cleanup_db():
-  global c
+  global cursor
   try:
-    c.execute('''SELECT * FROM  fdescriptions''')
-    rows = c.fetchall()
+    cursor.execute('''SELECT * FROM  fdescriptions''')
+    rows = cursor.fetchall()
     for row in rows:
       if not os.path.exists(row[0]):
-        c.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (row[0],))
+        cursor.execute('''DELETE  FROM fdescriptions WHERE filename=?''', (row[0],))
         print('Removed description for deleted file', row[0])
   except Error as e:
     print(e)
 
 def list_all():
-  global c
+  global cursor
   table =  PrettyTable()
   table.field_names = ["File Name", "Description"]
   try:
-    c.execute('''SELECT * FROM  fdescriptions''')
-    rows = c.fetchall()
+    cursor.execute('''SELECT * FROM  fdescriptions''')
+    rows = cursor.fetchall()
     for row in rows:
       table.add_row([row[0],row[1]])
     print(table)
@@ -71,8 +71,8 @@ FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'clea
                'listall' : list_all, 'copy' : copy_desc}
 
 def main():
-  global conn
-  global c
+  global connection
+  global cursor
   parser = argparse.ArgumentParser()
   parser.add_argument('command', choices=FUNCTION_MAP.keys())
   parser.add_argument('-f', '--file', type=str,  help="File name")
@@ -84,9 +84,9 @@ def main():
   dbpath = config.get('default','db')
 
   try:
-      conn = sqlite3.connect(os.path.expanduser(dbpath))
-      c = conn.cursor()
-      c.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
+      connection = sqlite3.connect(os.path.expanduser(dbpath))
+      cursor = connection.cursor()
+      cursor.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
       func = FUNCTION_MAP[args.command]
       if args.command == 'cleanup' or args.command == 'listall':
         func()
@@ -97,11 +97,11 @@ def main():
       else:
         filename = os.path.abspath(args.file)
         func(filename)
-      conn.commit()
+      connection.commit()
   except Error as e:
         print(e)
   finally:
-    if conn:
-      conn.close()
+    if connection:
+      connection.close()
 
 main()
