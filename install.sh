@@ -1,5 +1,5 @@
 #!/bin/bash
 
-pip install prettytable configparser
+sudo pip3 install prettytable configparser
 cp conf/.fdesrc ~/
-cp src/fdes.py /usr/bin/fdes
+sudo cp src/fdes.py /usr/bin/fdes
