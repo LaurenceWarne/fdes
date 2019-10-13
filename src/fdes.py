@@ -73,8 +73,7 @@ def main():
   config.read_file(open(os.path.expanduser('~/.fdesrc')))
   dbpath = config.get('default','db')
 
-  try:
-      connection = sqlite3.connect(os.path.expanduser(dbpath))
+  with sqlite3.connect(os.path.expanduser(dbpath)) as connection:
       cursor = connection.cursor()
       cursor.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
       func = FUNCTION_MAP[args.command]
@@ -88,10 +87,6 @@ def main():
         filename = os.path.abspath(args.file)
         func(cursor, filename)
       connection.commit()
-  except Error as e:
-        print(e)
-  finally:
-    if connection:
-      connection.close()
+
 
 main()
