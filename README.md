@@ -11,16 +11,10 @@ The default database path is ~/.local/share/fdes/.fdes.db
 
 Requires Python3
 
-Dependencies
 ```bash
-pip3 install -r requirements.txt
-
-```
-Setup
-```bash
-git clone <this repo>
+git clone https://github.com/jmh2012/fdes.git
 cd fdes
-./install.sh
+python3 setup.py install --user  # Install locally
 ```
 
 ## Usage Examples
