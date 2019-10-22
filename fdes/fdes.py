@@ -57,7 +57,7 @@ def list_all(cursor):
     cursor.execute('''SELECT filename, description FROM  fdescriptions''')
     for (filename, description,) in cursor:
         table.add_row((filename, description,))
-        print(table)
+    print(table)
 
 
 def create_default_config_file(filename):
