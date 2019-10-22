@@ -18,4 +18,5 @@ setup(
         "prettytable",
         "configparser"
     ],
+    license="MIT"
 )

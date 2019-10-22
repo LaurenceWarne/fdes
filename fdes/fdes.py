@@ -44,6 +44,20 @@ def list_all(cursor):
   print(table)
 
 
+def create_default_config_file(filename):
+  default_config = configparser.ConfigParser()
+  default_config.add_section('default')
+  default_config.set('default', 'db', '~/.local/share/fdes/fdes.db')
+  directory, _ = os.path.split(filename)
+  directory = os.path.expanduser(directory)
+
+  if (not os.path.exists(directory)):
+    os.makedirs(directory)
+  with open(os.path.expanduser(filename), 'w') as f:
+    default_config.write(f)
+  return default_config
+
+
 FUNCTION_MAP = {'get' : get_desc, 'set' : set_desc, 'remove': remove_desc, 'cleanup' : cleanup_db, \
                'listall' : list_all, 'copy' : copy_desc}
 
@@ -55,10 +69,21 @@ def main():
   args = parser.parse_args()
 
   config = configparser.ConfigParser()
-  config.read_file(open(os.path.expanduser('~/.config/fdes/fdesrc')))
-  dbpath = config.get('default','db')
+  config_location = '~/.config/fdes/fdesrc'
+  try:
+    config.read_file(open(os.path.expanduser(config_location)))
+  except FileNotFoundError:
+    # Create config file
+    print("Creating a default config file at: " + config_location)
+    config = create_default_config_file(config_location)
 
-  with sqlite3.connect(os.path.expanduser(dbpath)) as connection:
+  full_path = config.get('default', 'db')
+  dbpath, _ = os.path.split(full_path)
+  dbpath = os.path.expanduser(dbpath)
+  if (not os.path.exists(dbpath)):
+      os.makedirs(dbpath)
+
+  with sqlite3.connect(os.path.expanduser(full_path)) as connection:
       cursor = connection.cursor()
       cursor.execute('''CREATE TABLE IF NOT EXISTS fdescriptions (filename TEXT PRIMARY KEY, description TEXT)''')
       func = FUNCTION_MAP[args.command]
@@ -73,5 +98,5 @@ def main():
         func(cursor, filename)
       connection.commit()
 
-
-main()
+if __name__ == "__main__":
+  main()
