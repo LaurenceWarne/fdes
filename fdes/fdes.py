@@ -59,7 +59,9 @@ def cleanup_db(cursor):
 def list_all(cursor):
     table = PrettyTable()
     table.field_names = ["File Name", "Description"]
-    cursor.execute('''SELECT filename, description FROM  fdescriptions ORDER BY filename ASC''')
+    cursor.execute(
+        '''SELECT filename, description FROM  fdescriptions 
+        ORDER BY filename ASC''')
     for (filename, description,) in cursor:
         table.add_row((filename, description,))
     print(table)
@@ -128,9 +130,15 @@ def main():
         elif args.command == 'copy':
             filename = os.path.abspath(args.file)
             newfile = os.path.abspath(args.destination)
+            if (not os.path.exists(filename) or not os.path.exists(newfile)):
+                print("File does not exist")
+                return
             func(cursor, filename, newfile)
         else:
             filename = os.path.abspath(args.file)
+            if (not os.path.exists(filename)):
+                print("File does not exist")
+                return
             func(cursor, filename)
             connection.commit()
 
