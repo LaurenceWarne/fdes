@@ -59,7 +59,7 @@ def cleanup_db(cursor):
 def list_all(cursor):
     table = PrettyTable()
     table.field_names = ["File Name", "Description"]
-    cursor.execute('''SELECT filename, description FROM  fdescriptions''')
+    cursor.execute('''SELECT filename, description FROM  fdescriptions ORDER BY filename ASC''')
     for (filename, description,) in cursor:
         table.add_row((filename, description,))
     print(table)
