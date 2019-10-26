@@ -42,6 +42,9 @@ $ fdes listall
 # Remove a description for a file
 $ fdes remove -f <filename>
 
+# Remove all descriptions for files under a directory (including directory itself)
+$ fdes removedir -f <directory>
+
 # Clean up database of any files that don't exist anymore
 $ fdes cleanup
 Removed description for deleted file /home/user/oldfile

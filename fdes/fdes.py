@@ -30,6 +30,11 @@ def remove_desc(cursor, filename):
         '''DELETE FROM fdescriptions WHERE filename = ?''', (filename, )
     )
 
+def remove_all_dir(cursor, filename):
+    cursor.execute(
+        '''DELETE FROM fdescriptions WHERE filename LIKE ?''', (filename+"%", )
+    )
+
 
 def copy_desc(cursor, filename, newfile):
     cursor.execute(
@@ -78,6 +83,7 @@ FUNCTION_MAP = {
     'get': get_desc,
     'set': set_desc,
     'remove': remove_desc,
+    'removedir': remove_all_dir,
     'cleanup': cleanup_db,
     'listall': list_all,
     'copy': copy_desc
